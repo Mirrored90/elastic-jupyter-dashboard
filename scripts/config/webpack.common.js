@@ -21,18 +21,19 @@ const getCssLoaders = (importLoaders) => [
   {
     loader: 'postcss-loader',
     options: {
-      ident: 'postcss',
-      plugins: [
-        require('postcss-flexbugs-fixes'),
-        require('postcss-preset-env')({
-          autoprefixer: {
-            grid: true,
-            flexbox: 'no-2009',
-          },
-          stage: 3,
-        }),
-        require('postcss-normalize'),
-      ],
+      postcssOptions: {
+        plugins: [
+          require('postcss-flexbugs-fixes'),
+          require('postcss-preset-env')({
+            autoprefixer: {
+              grid: true,
+              flexbox: 'no-2009',
+            },
+            stage: 3,
+          }),
+          require('postcss-normalize'),
+        ],
+      },
       sourceMap: isDev,
     },
   },
@@ -128,6 +129,20 @@ module.exports = {
       {
         test: /\.css$/,
         use: getCssLoaders(1),
+        exclude: /node_modules/,
+      },
+      {
+        test:/\.css$/,
+        exclude:/src/,
+        use:[
+          { loader: "style-loader",},
+          {
+            loader: "css-loader",
+            options:{
+              importLoaders:1
+            }
+          }
+        ]
       },
       {
         test: /\.less$/,

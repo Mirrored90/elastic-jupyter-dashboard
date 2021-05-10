@@ -1,16 +1,11 @@
-import React from 'react';
+import * as React from 'react';
+import HomePage from './HomePage/HomePage';
 
-interface IProps {
-  name: string
-  age: number
-}
-
-function App(props: IProps) {
-  const { name, age } = props;
+function App(): JSX.Element {
   return (
-    <div className='app'>
-      <span>{`Hello! I'm ${name}, ${age} years old.`}</span>
-    </div>
+    <>
+      <HomePage />
+    </>
   );
 }
 
