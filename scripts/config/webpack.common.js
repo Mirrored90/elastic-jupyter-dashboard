@@ -9,7 +9,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 
 const getCssLoaders = (importLoaders) => [
-  isDev ? 'style-loader' : MiniCssExtractPlugin.loader,
+  'style-loader',
   {
     loader: 'css-loader',
     options: {
@@ -127,15 +127,9 @@ module.exports = {
         exclude: /node_modules/,
       },
       {
-        test: /\.css$/,
-        use: getCssLoaders(1),
-        exclude: /node_modules/,
-      },
-      {
         test:/\.css$/,
-        exclude:/src/,
         use:[
-          { loader: "style-loader",},
+          "style-loader",
           {
             loader: "css-loader",
             options:{
@@ -159,7 +153,13 @@ module.exports = {
       {
         test: /\.scss$/,
         use: [
-          ...getCssLoaders(2),
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options:{
+              importLoaders:2
+            }
+          },
           {
             loader: 'sass-loader',
             options: {

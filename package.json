@@ -58,6 +58,7 @@
     "@babel/preset-typescript": "^7.13.0",
     "@types/react": "^17.0.4",
     "@types/react-dom": "^17.0.3",
+    "@types/react-router-dom": "^5.1.7",
     "@types/webpack-env": "^1.16.0",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
@@ -120,7 +121,10 @@
     "@babel/runtime-corejs3": "^7.14.0",
     "antd": "^4.15.4",
     "dayjs": "^1.10.4",
+    "history": "^5.0.0",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "react-redux": "^7.2.4",
+    "react-router-dom": "^5.2.0"
   }
 }

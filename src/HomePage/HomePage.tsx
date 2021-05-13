@@ -1,64 +1,59 @@
 import * as React from 'react';
+import { Switch, Route, Redirect, useLocation } from 'react-router-dom';
+import { Location } from 'history';
 import { Layout } from 'antd';
-import MainMenu, { MenuKey } from '../components/MainMenu/MainMenu';
-import HeaderBreadcrumb from '../components/HeaderBreadcrumb/HeaderBreadcrumb';
+import SideMenu, { MenuKey } from '../components/SiedeMenu/SideMenu';
+import NotebookOverview from '../NotebookPage/OverviewPage/NotebookOverview';
+import GatewayOverview from '../GatewayPage/OverviewPage/GatewayOverview';
+import KernelOverview from '../KernelPage/OverviewPage/KernelOverview';
+import styles from './HomePage.module.scss';
 
-const { Header, Footer, Sider, Content } = Layout;
+const { Header, Footer, Content } = Layout;
 
 export interface IHomePageProps {}
 
-export interface IHomePageState {
-  selectedMenu: string;
+export interface IHomePageState {}
+
+function NoMatch(): JSX.Element {
+  const location = useLocation<Location>();
+
+  return (
+    <div>
+      <h3>
+        No match for <code>{location.pathname}</code>
+      </h3>
+    </div>
+  );
 }
 
 export default class HomePage extends React.Component<IHomePageProps, IHomePageState> {
   public constructor(props: IHomePageProps) {
     super(props);
-    this.state = {
-      selectedMenu: '',
-    };
+    this.state = {};
   }
 
-  private setSelectedMenu = (value: string): void => {
-    this.setState({ selectedMenu: value });
-  };
-
-  private getContent = (): JSX.Element => {
-    switch (this.state.selectedMenu) {
-      case MenuKey.NotebookOverview:
-        return <>{this.state.selectedMenu}</>;
-      case MenuKey.NotebookWorkloads:
-        return <>{this.state.selectedMenu}</>;
-      case MenuKey.NotebookLogs:
-        return <>{this.state.selectedMenu}</>;
-      case MenuKey.GatewayOverview:
-        return <>{this.state.selectedMenu}</>;
-      case MenuKey.GatewayWorkloads:
-        return <>{this.state.selectedMenu}</>;
-      case MenuKey.GatewayLogs:
-        return <>{this.state.selectedMenu}</>;
-      case MenuKey.KernelOverview:
-        return <>{this.state.selectedMenu}</>;
-      case MenuKey.KernelWorkloads:
-        return <>{this.state.selectedMenu}</>;
-      case MenuKey.KernelLogs:
-        return <>{this.state.selectedMenu}</>;
-      default:
-        return <></>;
-    }
-  };
+  private getContent = (): JSX.Element => (
+    <Content>
+      <Switch>
+        <Route exact path="/">
+          <Redirect to={MenuKey.NotebookOverview} />
+        </Route>
+        <Route exact path={MenuKey.NotebookOverview} component={NotebookOverview} />
+        <Route exact path={MenuKey.GatewayOverview} component={GatewayOverview} />
+        <Route exact path={MenuKey.KernelOverview} component={KernelOverview} />
+        <Route path="*" component={NoMatch} />
+      </Switch>
+    </Content>
+  );
 
   public render(): JSX.Element {
     return (
       <>
-        {/* <Layout className={styles.fillWindow}> */}
-        <Layout style={{ height: '100%', position: 'absolute', left: '0', width: '100%', overflow: 'hidden' }}>
-          <Sider>
-            <MainMenu onMenuSelected={this.setSelectedMenu} />
-          </Sider>
+        <Layout className={styles.fillWindow}>
+          <SideMenu />
           <Layout>
             <Header>Header</Header>
-            <Content>{this.getContent()}</Content>
+            {this.getContent()}
             <Footer>Footer</Footer>
           </Layout>
         </Layout>
