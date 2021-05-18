@@ -1,8 +1,12 @@
 import * as React from 'react';
+import { Dispatch } from 'redux';
+import { connect } from 'react-redux';
 import { Table, Button } from 'antd';
 import { ColumnProps } from 'antd/es/table';
-import { INotebookInfo } from '../../models/notebookModles/INotebookInfo';
-import { defaultColumnSettings } from '../../models/notebookModles/columns/ColumnSettings';
+import { IState } from '../../states/IState';
+import ActionType from '../../redux/actions/ActionTypes';
+import { INotebookInfo } from '../../models/notebookModels/INotebookInfo';
+import { defaultColumnSettings } from '../../models/notebookModels/columns/ColumnSettings';
 import styles from './NotebookList.module.scss';
 
 const data: INotebookInfo[] = [
@@ -31,19 +35,19 @@ const data: INotebookInfo[] = [
   },
 ];
 
-export interface INotebookListProps {}
+export interface INotebookListProps {
+  dispatch?: Dispatch;
+}
 
 export interface INotebookListState {
   rowId: string;
-  isDrawerOpen: boolean;
 }
 
-export default class NotebookList extends React.Component<INotebookListProps, INotebookListState> {
+class NotebookList extends React.Component<INotebookListProps, INotebookListState> {
   public constructor(props: INotebookListProps) {
     super(props);
     this.state = {
       rowId: '',
-      isDrawerOpen: false,
     };
   }
 
@@ -56,11 +60,12 @@ export default class NotebookList extends React.Component<INotebookListProps, IN
     this.setState(
       {
         rowId: record.id,
-        isDrawerOpen: true,
       },
       () => {
         console.log('--- click id', ' ', this.state.rowId);
-        console.log('--- isDrawerOpen', ' ', this.state.isDrawerOpen);
+        this.props.dispatch?.({
+          type: ActionType.OPEN_NOTEBOOK_DETAIL_DRAWER,
+        });
       },
     );
   };
@@ -99,3 +104,9 @@ export default class NotebookList extends React.Component<INotebookListProps, IN
     );
   }
 }
+
+function mapStateToProps(state: IState, ownProps: INotebookListProps): INotebookListProps {
+  return ownProps;
+}
+
+export default connect(mapStateToProps)(NotebookList);
