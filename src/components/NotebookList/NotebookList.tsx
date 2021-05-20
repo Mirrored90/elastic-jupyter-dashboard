@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import { Table, Button } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { ColumnProps } from 'antd/es/table';
 import { IState } from '../../states/IState';
 import ActionType from '../../redux/actions/ActionTypes';
@@ -12,7 +13,7 @@ import styles from './NotebookList.module.scss';
 const data: INotebookInfo[] = [
   {
     id: 'guid1',
-    notebookName: 'John Brown',
+    notebookName: 'notebook_111',
     notebookNamespace: 'default',
     status: 'Running',
     gatewayName: '',
@@ -20,7 +21,7 @@ const data: INotebookInfo[] = [
   },
   {
     id: 'guid2',
-    notebookName: 'John Brown',
+    notebookName: 'notebook_work',
     notebookNamespace: 'default',
     status: 'Running',
     gatewayName: 'my gateway1',
@@ -28,7 +29,7 @@ const data: INotebookInfo[] = [
   },
   {
     id: 'guid3',
-    notebookName: 'John Brown',
+    notebookName: 'happy_jupyter',
     notebookNamespace: 'default',
     status: 'Pending',
     createdOn: '1/30/2021',
@@ -36,6 +37,7 @@ const data: INotebookInfo[] = [
 ];
 
 export interface INotebookListProps {
+  notebooks?: INotebookInfo[];
   dispatch?: Dispatch;
 }
 
@@ -51,26 +53,40 @@ class NotebookList extends React.Component<INotebookListProps, INotebookListStat
     };
   }
 
-  private onConnectClicked = (e: React.MouseEvent<HTMLElement, MouseEvent>): void => {
-    e.stopPropagation();
-    console.log('--- click connect');
+  private onClickPress = (): void => {
+    this.props.dispatch?.({
+      type: ActionType.UPDATE_NOTEBOOK_TABLE,
+      payload: { notebooks: data },
+    });
+    this.props.dispatch?.({
+      type: ActionType.OPEN_NOTEBOOK_CREATION_DRAWER,
+    });
   };
 
   private onRowClicked = (record: INotebookInfo): void => {
-    this.setState(
-      {
-        rowId: record.id,
-      },
-      () => {
-        console.log('--- click id', ' ', this.state.rowId);
-        this.props.dispatch?.({
-          type: ActionType.OPEN_NOTEBOOK_DETAIL_DRAWER,
-        });
-      },
-    );
+    this.props.dispatch?.({
+      type: ActionType.UPDATE_SELECTED_NOTEBOOK,
+      payload: { selectedNotebook: record },
+    });
+
+    this.props.dispatch?.({
+      type: ActionType.OPEN_NOTEBOOK_DETAIL_DRAWER,
+    });
+
+    console.log('----click', ' ', record.id);
   };
 
-  private getRenderForConnectButton = (): JSX.Element => <Button onClick={this.onConnectClicked}>Connect</Button>;
+  private getRenderForConnectButton = (value: any, record: INotebookInfo): JSX.Element => (
+    <Button
+      onClick={(e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        e.stopPropagation();
+        console.log('----click connect', ' ', record.id);
+        // TODO: call API to connect notebook by sending record.id to backend
+      }}
+    >
+      Connect
+    </Button>
+  );
 
   private getColumns = (): ColumnProps<INotebookInfo>[] => {
     const columns: ColumnProps<INotebookInfo>[] = [];
@@ -80,7 +96,7 @@ class NotebookList extends React.Component<INotebookListProps, INotebookListStat
       } else {
         columns.push({
           ...defaultColumnSettings[columnKey],
-          render: () => this.getRenderForConnectButton(),
+          render: (value: any, record: INotebookInfo) => this.getRenderForConnectButton(value, record),
         });
       }
     }
@@ -90,15 +106,16 @@ class NotebookList extends React.Component<INotebookListProps, INotebookListStat
   public render(): JSX.Element {
     return (
       <>
+        <Button type="primary" shape="circle" icon={<PlusOutlined />} onClick={this.onClickPress} />
         <Table
-          className={styles.table}
           columns={this.getColumns()}
-          dataSource={data}
+          dataSource={this.props.notebooks}
           pagination={false}
           tableLayout="auto"
           onRow={(record) => ({
             onClick: () => this.onRowClicked(record),
           })}
+          rowClassName={this.props.notebooks?.length !== 0 ? styles.tableRows : ''}
         />
       </>
     );
@@ -106,7 +123,7 @@ class NotebookList extends React.Component<INotebookListProps, INotebookListStat
 }
 
 function mapStateToProps(state: IState, ownProps: INotebookListProps): INotebookListProps {
-  return ownProps;
+  return { ...ownProps, notebooks: state.notebook.notebooks };
 }
 
 export default connect(mapStateToProps)(NotebookList);
