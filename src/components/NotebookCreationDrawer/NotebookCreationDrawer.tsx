@@ -4,9 +4,10 @@ import { connect } from 'react-redux';
 import { Form, Drawer, Button, Row, Col, Input, Space, Switch } from 'antd';
 import { FormInstance } from 'antd/lib/form';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { cloneDeep } from 'lodash';
 import { IState } from '../../states/IState';
 import ActionType from '../../redux/actions/ActionTypes';
-import { INotebookInfo } from '../../models/notebookModels/INotebookInfo';
+import { INotebookSettings } from '../../models/notebookModels/INotebookSettings';
 import { NotebookIcon, DockerIcon, GatewayBackIcon } from '../Icons/Icons';
 import styles from './NotebookCreationDrawer.module.scss';
 
@@ -22,8 +23,11 @@ export interface INotebookCreationDrawerState {
   gatewayNamespace: string;
   customizeContainer: boolean;
   containerName: string;
-  containerNamespace: string;
   containerCommands: string[];
+  containerImage: string;
+  containerPorts: string;
+  containerVolumes: string;
+  containerEnvironments: string;
 }
 
 class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProps, INotebookCreationDrawerState> {
@@ -38,26 +42,30 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
       gatewayNamespace: '',
       customizeContainer: false,
       containerName: '',
-      containerNamespace: '',
       containerCommands: [],
+      containerImage: '',
+      containerPorts: '',
+      containerVolumes: '',
+      containerEnvironments: '',
     };
   }
 
   private onSubmit = (): void => {
-    console.log(
-      '-',
-      this.state.notebookName,
-      '-',
-      this.state.notebookNamespace,
-      '-',
-      this.state.gatewayName,
-      '-',
-      this.state.gatewayNamespace,
-      '-',
-      this.state.containerName,
-      '-',
-      this.state.containerNamespace,
-    );
+    const newNotebook: INotebookSettings = {
+      notebookName: this.state.notebookName,
+      notebookNamespace: this.state.notebookNamespace,
+      gatewayName: this.state.gatewayName,
+      gatewayNamespace: this.state.gatewayNamespace,
+      ...(this.state.customizeContainer && {
+        containerName: this.state.containerName,
+        image: this.state.containerImage,
+        ports: this.state.containerPorts,
+        command: this.state.containerCommands,
+        volumes: this.state.containerVolumes,
+        environment: this.state.containerEnvironments,
+      }),
+    };
+    // TODO: call POST api to create notebook here
     this.onCloseDrawer();
   };
 
@@ -69,7 +77,10 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
       gatewayNamespace: '',
       customizeContainer: false,
       containerName: '',
-      containerNamespace: '',
+      containerImage: '',
+      containerPorts: '',
+      containerVolumes: '',
+      containerEnvironments: '',
     });
   };
 
@@ -117,14 +128,32 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
     });
   };
 
-  private onContainerNamespaceChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  private onContainerImageChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     this.setState({
-      containerNamespace: e.target.value,
+      containerImage: e.target.value,
+    });
+  };
+
+  private onContainerPortsChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    this.setState({
+      containerPorts: e.target.value,
+    });
+  };
+
+  private onContainerVolumesChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    this.setState({
+      containerVolumes: e.target.value,
+    });
+  };
+
+  private onContainerEnvironmentsChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    this.setState({
+      containerEnvironments: e.target.value,
     });
   };
 
   private getNotebookContent = (): JSX.Element => (
-    <>
+    <div className={styles.sectionContainer}>
       <Space direction="vertical">
         <div className={styles.header}>
           <NotebookIcon />
@@ -144,11 +173,11 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
           </Form.Item>
         </Col>
       </Row>
-    </>
+    </div>
   );
 
   private getGatewayContent = (): JSX.Element => (
-    <>
+    <div className={styles.sectionContainer}>
       <Space direction="vertical">
         <div className={styles.header}>
           <GatewayBackIcon />
@@ -172,11 +201,11 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
           </Form.Item>
         </Col>
       </Row>
-    </>
+    </div>
   );
 
   private getContainerContent = (): JSX.Element => (
-    <>
+    <div className={styles.sectionContainer}>
       <Space direction="vertical">
         <div className={styles.header}>
           <DockerIcon />
@@ -192,14 +221,31 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
         </Col>
       </Row>
       {this.state.customizeContainer && this.getContainerExtraContent()}
-    </>
+    </div>
   );
+
+  private addCommands = (name: number, e: React.ChangeEvent<HTMLInputElement>): void => {
+    const commands: string[] = cloneDeep(this.state.containerCommands);
+    commands[name] = e.target.value;
+    this.setState({
+      containerCommands: [...commands],
+    });
+  };
+
+  private removeCommands = (remove: (index: number | number[]) => void, name: number): void => {
+    remove(name);
+    const commands: string[] = cloneDeep(this.state.containerCommands);
+    commands.splice(name, 1);
+    this.setState({
+      containerCommands: [...commands],
+    });
+  };
 
   private getListForCommands = (): JSX.Element => (
     <Form.List name="commands">
       {(fields, { add, remove }) => (
         <>
-          <Form.Item label="Commands">
+          <Form.Item className={styles.plusOutlined} label="Commands">
             <Button shape="round" onClick={() => add()} block icon={<PlusOutlined />}>
               Add field
             </Button>
@@ -212,37 +258,9 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
                 fieldKey={fieldKey}
                 rules={[{ required: true, message: 'Missing first name' }]}
               >
-                <Input
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const commands: string[] = this.state.containerCommands;
-                    commands[name] = e.target.value;
-                    this.setState(
-                      {
-                        containerCommands: [...commands],
-                      },
-                      () => {
-                        console.log('--current commands:', this.state.containerCommands);
-                      },
-                    );
-                  }}
-                />
+                <Input onChange={(event) => this.addCommands(name, event)} />
               </Form.Item>
-              <MinusCircleOutlined
-                onClick={() => {
-                  remove(name);
-                  const toRemove: string = this.state.containerCommands[name];
-                  const commands: string[] = this.state.containerCommands.filter((item) => item !== toRemove);
-                  // const commands: string[] = this.state.containerCommands.splice(name, 1);
-                  this.setState(
-                    {
-                      containerCommands: [...commands],
-                    },
-                    () => {
-                      console.log('--current commands:', this.state.containerCommands);
-                    },
-                  );
-                }}
-              />
+              <MinusCircleOutlined onClick={() => this.removeCommands(remove, name)} />
             </Space>
           ))}
         </>
@@ -252,22 +270,25 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
 
   private getContainerExtraContent = (): JSX.Element => (
     <>
-      <Row gutter={20}>
-        <Col span={12}>
-          <Form.Item name="containerName" label="Name" rules={[{ required: true, message: 'Please enter name' }]}>
-            <Input onChange={this.onContainerNameChange} />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item
-            name="containerNamespace"
-            label="Namespace"
-            rules={[{ required: true, message: 'Please enter namespace' }]}
-          >
-            <Input onChange={this.onContainerNamespaceChange} />
-          </Form.Item>
-        </Col>
-      </Row>
+      <Form.Item name="containerName" label="Name" rules={[{ required: true, message: 'Please enter namespace' }]}>
+        <Input onChange={this.onContainerNameChange} />
+      </Form.Item>
+      <Form.Item name="image" label="Image" rules={[{ required: true, message: 'Please enter namespace' }]}>
+        <Input onChange={this.onContainerImageChange} />
+      </Form.Item>
+      <Form.Item name="ports" label="Ports" rules={[{ required: true, message: 'Please enter namespace' }]}>
+        <Input onChange={this.onContainerPortsChange} />
+      </Form.Item>
+      <Form.Item
+        name="environments"
+        label="Environments"
+        rules={[{ required: true, message: 'Please enter namespace' }]}
+      >
+        <Input onChange={this.onContainerEnvironmentsChange} />
+      </Form.Item>
+      <Form.Item name="volumes" label="Volumes" rules={[{ required: true, message: 'Please enter namespace' }]}>
+        <Input onChange={this.onContainerVolumesChange} />
+      </Form.Item>
       {this.getListForCommands()}
     </>
   );
@@ -281,12 +302,10 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
   );
 
   private getFooterContent = (): JSX.Element => (
-    <div
-      style={{
-        textAlign: 'right',
-      }}
-    >
-      <Button style={{ marginRight: 8 }}>Cancel</Button>
+    <div className={styles.footerButton}>
+      <Button style={{ marginRight: 8 }} onClick={this.onCloseDrawer}>
+        Cancel
+      </Button>
       <Button form="creationForm" key="submit" htmlType="submit" type="primary">
         Submit
       </Button>

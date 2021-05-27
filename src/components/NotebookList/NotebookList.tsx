@@ -53,11 +53,17 @@ class NotebookList extends React.Component<INotebookListProps, INotebookListStat
     };
   }
 
-  private onClickPress = (): void => {
+  private mockNotebookData = (): void => {
     this.props.dispatch?.({
       type: ActionType.UPDATE_NOTEBOOK_TABLE,
       payload: { notebooks: data },
     });
+  };
+
+  private onClickPress = (): void => {
+    // TODO: remove this mock
+    this.mockNotebookData();
+
     this.props.dispatch?.({
       type: ActionType.OPEN_NOTEBOOK_CREATION_DRAWER,
     });

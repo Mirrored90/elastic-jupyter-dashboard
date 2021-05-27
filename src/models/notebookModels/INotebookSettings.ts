@@ -9,6 +9,6 @@ export interface INotebookSettings {
   image?: string;
   ports?: string;
   command?: string[];
-  mounts?: string[];
-  environment?: string[];
+  volumes?: string;
+  environment?: string;
 }
