@@ -1,0 +1,28 @@
+.drawerBody {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.itemLabel {
+  width: 260px;
+  float: left;
+}
+
+.itemFieldValue {
+  word-wrap: break-word;
+  word-break: break-all;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.tagContainer {
+  word-wrap: break-word;
+  word-break: break-all;
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: -8px;
+}
+
+.tag {
+  margin-bottom: 8px;
+}

@@ -18,6 +18,7 @@ const data: INotebookInfo[] = [
     status: 'Running',
     gatewayName: '',
     createdOn: '3/27/2021',
+    notebookLabels: ['namespace=default', 'notebook=jupyter', 'notebook-samplepod-template-hash=7879f56c8c'],
   },
   {
     id: 'guid2',

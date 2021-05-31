@@ -10,7 +10,7 @@ export interface INotebookInfo {
   conditions?: string[];
   node?: string;
   secrets?: string;
-  toleration?: number;
+  toleration?: string;
 
   containers?: IContainerInfo[];
 

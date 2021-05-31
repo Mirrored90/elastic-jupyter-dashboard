@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import { Drawer, List } from 'antd';
+import { Drawer, Divider } from 'antd';
+import DetailItem from '../DetailItem/DetailItem';
 import { IState } from '../../states/IState';
 import { INotebookInfo } from '../../models/notebookModels/INotebookInfo';
 import ActionType from '../../redux/actions/ActionTypes';
+import styles from './NotebookDetailDrawer.module.scss';
 
 export interface INotebookDetailDrawerProps {
   isOpen?: boolean;
@@ -13,14 +15,6 @@ export interface INotebookDetailDrawerProps {
 }
 
 export interface INotebookDetailDrawerState {}
-
-const data = [
-  'Racing car sprays burning fuel into crowd.',
-  'Japanese princess to wed commoner.',
-  'Australian walks 100km after outback crash.',
-  'Man charged over missing wedding girl.',
-  'Los Angeles battles huge wildfires.',
-];
 
 // eslint-disable-next-line react/prefer-stateless-function
 class NotebookDetailDrawer extends React.Component<INotebookDetailDrawerProps, INotebookDetailDrawerState> {
@@ -35,6 +29,34 @@ class NotebookDetailDrawer extends React.Component<INotebookDetailDrawerProps, I
     });
   };
 
+  private getNotebookDetail = (): JSX.Element => {
+    const { selection } = this.props;
+    if (!selection) {
+      return <></>;
+    }
+    return (
+      <>
+        <div className={styles.header}>
+          <Divider orientation="left">Notebook</Divider>
+        </div>
+        <div className={styles.content}>
+          <DetailItem label="Name" fieldValue={[selection.notebookName]} />
+          <DetailItem label="Namespace" fieldValue={[selection.notebookNamespace]} />
+          <DetailItem label="Created" fieldValue={[selection.createdOn]} />
+          <DetailItem label="Controlled By" fieldValue={selection.gatewayName ? [selection.gatewayName] : undefined} />
+          <DetailItem label="Labels" fieldValue={selection.notebookLabels} />
+          <DetailItem label="Status" fieldValue={[selection.status]} />
+          <DetailItem label="Node" fieldValue={selection.node ? [selection.node] : undefined} />
+          <DetailItem label="Conditions" fieldValue={selection.conditions} />
+          <DetailItem label="Secrets" fieldValue={selection.secrets ? [selection.secrets] : undefined} />
+          <DetailItem label="Toleration" fieldValue={selection.toleration ? [selection.toleration] : undefined} />
+        </div>
+      </>
+    );
+  };
+
+  private getDetailContent = (): JSX.Element => <div className={styles.drawerBody}>{this.getNotebookDetail()}</div>;
+
   public render(): JSX.Element {
     return (
       <>
@@ -45,14 +67,7 @@ class NotebookDetailDrawer extends React.Component<INotebookDetailDrawerProps, I
           visible={this.props.isOpen}
           width={720}
         >
-          <List
-            size="large"
-            // header={<div>Header</div>}
-            // footer={<div>Footer</div>}
-            bordered={false}
-            dataSource={data}
-            renderItem={(item) => <List.Item>{item}</List.Item>}
-          />
+          {this.getDetailContent()}
         </Drawer>
       </>
     );
