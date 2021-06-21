@@ -21,7 +21,9 @@ export default function DetailItem(props: IDetailItemProps): JSX.Element {
           ))}
         </div>
       ) : (
-        <div className={styles.itemFieldValue}>{props.fieldValue ? props.fieldValue[0] : '-'}</div>
+        <div className={styles.itemFieldValue}>
+          {props.fieldValue && props.fieldValue[0] ? props.fieldValue[0] : '-'}
+        </div>
       )}
       <Divider style={{ marginTop: '10px', marginBottom: '10px' }} />
     </>

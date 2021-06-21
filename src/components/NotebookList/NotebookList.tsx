@@ -7,64 +7,34 @@ import { ColumnProps } from 'antd/es/table';
 import { IState } from '../../states/IState';
 import ActionType from '../../redux/actions/ActionTypes';
 import { INotebookInfo } from '../../models/notebookModels/INotebookInfo';
+import DataProvider from '../../dataProvider/DataProvider';
 import { defaultColumnSettings } from '../../models/notebookModels/columns/ColumnSettings';
 import styles from './NotebookList.module.scss';
-
-const data: INotebookInfo[] = [
-  {
-    id: 'guid1',
-    notebookName: 'notebook_111',
-    notebookNamespace: 'default',
-    status: 'Running',
-    gatewayName: '',
-    createdOn: '3/27/2021',
-    notebookLabels: ['namespace=default', 'notebook=jupyter', 'notebook-samplepod-template-hash=7879f56c8c'],
-  },
-  {
-    id: 'guid2',
-    notebookName: 'notebook_work',
-    notebookNamespace: 'default',
-    status: 'Running',
-    gatewayName: 'my gateway1',
-    createdOn: '5/17/2021',
-  },
-  {
-    id: 'guid3',
-    notebookName: 'happy_jupyter',
-    notebookNamespace: 'default',
-    status: 'Pending',
-    createdOn: '1/30/2021',
-  },
-];
 
 export interface INotebookListProps {
   notebooks?: INotebookInfo[];
   dispatch?: Dispatch;
 }
 
-export interface INotebookListState {
-  rowId: string;
-}
-
+export interface INotebookListState {}
 class NotebookList extends React.Component<INotebookListProps, INotebookListState> {
+  private dataProvider: DataProvider;
+
   public constructor(props: INotebookListProps) {
     super(props);
-    this.state = {
-      rowId: '',
-    };
+    this.dataProvider = new DataProvider();
+    this.state = {};
   }
 
-  private mockNotebookData = (): void => {
+  async componentDidMount() {
+    const responses: INotebookInfo[] | void = await this.dataProvider.getNotebooks();
     this.props.dispatch?.({
       type: ActionType.UPDATE_NOTEBOOK_TABLE,
-      payload: { notebooks: data },
+      payload: { notebooks: responses },
     });
-  };
+  }
 
   private onClickPress = (): void => {
-    // TODO: remove this mock
-    this.mockNotebookData();
-
     this.props.dispatch?.({
       type: ActionType.OPEN_NOTEBOOK_CREATION_DRAWER,
     });
@@ -79,16 +49,14 @@ class NotebookList extends React.Component<INotebookListProps, INotebookListStat
     this.props.dispatch?.({
       type: ActionType.OPEN_NOTEBOOK_DETAIL_DRAWER,
     });
-
-    console.log('----click', ' ', record.id);
   };
 
   private getRenderForConnectButton = (value: any, record: INotebookInfo): JSX.Element => (
     <Button
       onClick={(e: React.MouseEvent<HTMLElement, MouseEvent>) => {
         e.stopPropagation();
-        console.log('----click connect', ' ', record.id);
-        // TODO: call API to connect notebook by sending record.id to backend
+        console.log('----click connect');
+        // TODO: call API to connect notebook by sending name and namespace to backend
       }}
     >
       Connect
