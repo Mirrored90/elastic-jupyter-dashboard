@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import { Table, Button } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, LinkOutlined } from '@ant-design/icons';
 import { ColumnProps } from 'antd/es/table';
 import { IState } from '../../states/IState';
 import ActionType from '../../redux/actions/ActionTypes';
@@ -17,6 +17,7 @@ export interface INotebookListProps {
 }
 
 export interface INotebookListState {}
+
 class NotebookList extends React.Component<INotebookListProps, INotebookListState> {
   private dataProvider: DataProvider;
 
@@ -26,13 +27,33 @@ class NotebookList extends React.Component<INotebookListProps, INotebookListStat
     this.state = {};
   }
 
-  async componentDidMount() {
-    const responses: INotebookInfo[] | void = await this.dataProvider.getNotebooks();
-    this.props.dispatch?.({
-      type: ActionType.UPDATE_NOTEBOOK_TABLE,
-      payload: { notebooks: responses },
-    });
+  componentDidMount() {
+    this.refreshList();
   }
+
+  private refreshList = async (): Promise<void> => {
+    try {
+      const responses: INotebookInfo[] = await this.dataProvider.getNotebooks();
+      this.props.dispatch?.({
+        type: ActionType.UPDATE_NOTEBOOK_TABLE,
+        payload: { notebooks: responses },
+      });
+    } catch (error) {
+      console.log('---error:', error);
+    }
+  };
+
+  private refreshListLocally = (value: string): void => {
+    const updatedNotebooks: INotebookInfo[] | undefined = this.props.notebooks?.filter(
+      (notebook) => notebook.podName !== value,
+    );
+    if (updatedNotebooks) {
+      this.props.dispatch?.({
+        type: ActionType.UPDATE_NOTEBOOK_TABLE,
+        payload: { notebooks: updatedNotebooks },
+      });
+    }
+  };
 
   private onClickPress = (): void => {
     this.props.dispatch?.({
@@ -51,16 +72,36 @@ class NotebookList extends React.Component<INotebookListProps, INotebookListStat
     });
   };
 
-  private getRenderForConnectButton = (value: any, record: INotebookInfo): JSX.Element => (
-    <Button
-      onClick={(e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-        e.stopPropagation();
-        console.log('----click connect');
-        // TODO: call API to connect notebook by sending name and namespace to backend
-      }}
-    >
-      Connect
-    </Button>
+  private getRenderActionColumn = (value: any, record: INotebookInfo): JSX.Element => (
+    <>
+      <Button
+        icon={<LinkOutlined />}
+        onClick={(e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+          e.stopPropagation();
+          console.log('----click connect');
+          // TODO: call API to connect notebook by sending name and namespace to backend
+        }}
+      >
+        Connect
+      </Button>
+      <Button
+        className={styles.deleteButton}
+        icon={<DeleteOutlined />}
+        onClick={async (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+          e.stopPropagation();
+          try {
+            await this.dataProvider.deleteNotebook(record.name, record.namespace);
+            if (record.podName) {
+              this.refreshListLocally(record.podName);
+            }
+          } catch (error) {
+            console.log('error:', error);
+          }
+        }}
+      >
+        Delete
+      </Button>
+    </>
   );
 
   private getColumns = (): ColumnProps<INotebookInfo>[] => {
@@ -71,7 +112,7 @@ class NotebookList extends React.Component<INotebookListProps, INotebookListStat
       } else {
         columns.push({
           ...defaultColumnSettings[columnKey],
-          render: (value: any, record: INotebookInfo) => this.getRenderForConnectButton(value, record),
+          render: (value: any, record: INotebookInfo) => this.getRenderActionColumn(value, record),
         });
       }
     }

@@ -1,4 +1,3 @@
-import { ColumnType } from 'antd/lib/table';
 import { IColumnSettings } from '../../common/IColumnSettings';
 import { INotebookInfo } from '../INotebookInfo';
 
@@ -15,14 +14,14 @@ export const defaultColumnSettings: { [key: string]: IColumnSettings<INotebookIn
   [ColumnKeys.NAME]: {
     key: ColumnKeys.NAME,
     title: 'Name',
-    dataIndex: 'notebookName',
+    dataIndex: 'name',
     editable: false,
     width: 200,
   },
   [ColumnKeys.NAMESPACE]: {
     key: ColumnKeys.NAMESPACE,
     title: 'Namespace',
-    dataIndex: 'notebookNamespace',
+    dataIndex: 'namespace',
     editable: false,
     width: 50,
   },

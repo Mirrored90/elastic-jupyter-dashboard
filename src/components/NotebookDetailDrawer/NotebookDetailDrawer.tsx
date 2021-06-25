@@ -39,16 +39,16 @@ class NotebookDetailDrawer extends React.Component<INotebookDetailDrawerProps, I
           <Divider orientation="left">Notebook</Divider>
         </div>
         <div className={styles.content}>
-          <DetailItem label="Name" fieldValue={[selection.notebookName]} />
-          <DetailItem label="Pod Name" fieldValue={[selection.podName]} />
-          <DetailItem label="Namespace" fieldValue={[selection.notebookNamespace]} />
-          <DetailItem label="Created" fieldValue={[selection.createdOn]} />
-          <DetailItem label="Gateway Name" fieldValue={[selection.gatewayName]} />
-          <DetailItem label="Gateway Namespace" fieldValue={[selection.gatewayNamespace]} />
-          <DetailItem label="Labels" fieldValue={selection.notebookLabels} />
-          <DetailItem label="Status" fieldValue={[selection.status]} />
-          <DetailItem label="Node" fieldValue={selection.node ? [selection.node] : undefined} />
-          <DetailItem label="Conditions" fieldValue={selection.conditions} />
+          <DetailItem label="Name" fieldValue={selection.name} />
+          <DetailItem label="Pod Name" fieldValue={selection.podName} />
+          <DetailItem label="Namespace" fieldValue={selection.namespace} />
+          <DetailItem label="Created" fieldValue={selection.createdOn} />
+          <DetailItem label="Gateway Name" fieldValue={selection.gatewayName} />
+          <DetailItem label="Gateway Namespace" fieldValue={selection.gatewayNamespace} />
+          <DetailItem label="Labels" fieldValues={selection.label} />
+          <DetailItem label="Status" fieldValue={selection.status} />
+          <DetailItem label="Node" fieldValue={selection.node} />
+          <DetailItem label="Conditions" fieldValues={selection.conditions} />
         </div>
       </>
     );
@@ -60,7 +60,7 @@ class NotebookDetailDrawer extends React.Component<INotebookDetailDrawerProps, I
     return (
       <>
         <Drawer
-          title={this.props.selection?.notebookName}
+          title={this.props.selection?.name}
           closable
           onClose={this.onDismiss}
           visible={this.props.isOpen}

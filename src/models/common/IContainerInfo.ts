@@ -1,9 +1,11 @@
 export interface IContainerInfo {
   containerName: string;
-  containerStatus: string;
+  containerStatus?: string;
   lastStatus?: string;
   image?: string;
-  environment?: string[];
+  environment?: string;
   mounts?: string;
-  arguments?: string[];
+  commands?: string[];
+  ports?: string;
+  volumes?: string;
 }

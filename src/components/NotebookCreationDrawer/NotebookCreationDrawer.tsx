@@ -7,7 +7,8 @@ import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { cloneDeep } from 'lodash';
 import { IState } from '../../states/IState';
 import ActionType from '../../redux/actions/ActionTypes';
-import { INotebookSettings } from '../../models/notebookModels/INotebookSettings';
+import DataProvider from '../../dataProvider/DataProvider';
+import { INotebookInfo } from '../../models/notebookModels/INotebookInfo';
 import { NotebookIcon, DockerIcon, GatewayBackIcon } from '../Icons/Icons';
 import styles from './NotebookCreationDrawer.module.scss';
 
@@ -19,6 +20,7 @@ export interface INotebookCreationDrawerProps {
 export interface INotebookCreationDrawerState {
   notebookName: string;
   notebookNamespace: string;
+  specifyGateway: boolean;
   gatewayName: string;
   gatewayNamespace: string;
   customizeContainer: boolean;
@@ -33,11 +35,15 @@ export interface INotebookCreationDrawerState {
 class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProps, INotebookCreationDrawerState> {
   formRef = React.createRef<FormInstance>();
 
+  private dataProvider: DataProvider;
+
   public constructor(props: INotebookCreationDrawerProps) {
     super(props);
+    this.dataProvider = new DataProvider();
     this.state = {
       notebookName: '',
       notebookNamespace: '',
+      specifyGateway: false,
       gatewayName: '',
       gatewayNamespace: '',
       customizeContainer: false,
@@ -51,21 +57,28 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
   }
 
   private onSubmit = (): void => {
-    const newNotebook: INotebookSettings = {
-      notebookName: this.state.notebookName,
-      notebookNamespace: this.state.notebookNamespace,
-      gatewayName: this.state.gatewayName,
-      gatewayNamespace: this.state.gatewayNamespace,
+    const newNotebook: INotebookInfo = {
+      name: this.state.notebookName,
+      namespace: this.state.notebookNamespace,
       ...(this.state.customizeContainer && {
-        containerName: this.state.containerName,
-        image: this.state.containerImage,
-        ports: this.state.containerPorts,
-        command: this.state.containerCommands,
-        volumes: this.state.containerVolumes,
-        environment: this.state.containerEnvironments,
+        gatewayName: this.state.gatewayName,
+        gatewayNamespace: this.state.gatewayNamespace,
+      }),
+      ...(this.state.customizeContainer && {
+        containers: [
+          {
+            containerName: this.state.containerName,
+            image: this.state.containerImage,
+            ports: this.state.containerPorts,
+            commands: this.state.containerCommands,
+            volumes: this.state.containerVolumes,
+            environment: this.state.containerEnvironments,
+          },
+        ],
       }),
     };
     // TODO: call POST api to create notebook here
+    this.dataProvider.createNotebook(newNotebook);
     this.onCloseDrawer();
   };
 
@@ -95,6 +108,12 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
   private onNotebookNameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     this.setState({
       notebookName: e.target.value,
+    });
+  };
+
+  private onGatewaySwitchChange = (checked: boolean): void => {
+    this.setState({
+      specifyGateway: checked,
     });
   };
 
@@ -187,6 +206,19 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
       </Space>
       <Row className={styles.rowContainer} gutter={20}>
         <Col span={12}>
+          <Form.Item name="gatewaySwitch" label="Specify existed gateway">
+            <Switch checked={this.state.specifyGateway} onChange={this.onGatewaySwitchChange} />
+          </Form.Item>
+        </Col>
+      </Row>
+      {this.state.specifyGateway && this.getGatewayExtraContent()}
+    </div>
+  );
+
+  private getGatewayExtraContent = (): JSX.Element => (
+    <>
+      <Row className={styles.rowContainer} gutter={20}>
+        <Col span={12}>
           <Form.Item name="gatewayName" label="Name" rules={[{ required: true, message: 'Please enter name' }]}>
             <Input onChange={this.onGatewayNameChange} />
           </Form.Item>
@@ -201,7 +233,7 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
           </Form.Item>
         </Col>
       </Row>
-    </div>
+    </>
   );
 
   private getContainerContent = (): JSX.Element => (

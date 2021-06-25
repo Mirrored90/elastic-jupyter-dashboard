@@ -2,7 +2,7 @@ import { ColumnProps } from 'antd/es/table';
 
 export interface IColumnSettings<T> {
   key: string;
-  title: string;
+  title?: string;
   dataIndex: string;
   width: number;
   editable: boolean;

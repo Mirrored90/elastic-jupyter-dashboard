@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Switch, Route, Redirect, useLocation } from 'react-router-dom';
 import { Location } from 'history';
 import { Layout } from 'antd';
-import SideMenu, { MenuKey } from '../components/SiedeMenu/SideMenu';
+import SideMenu, { MenuKey } from '../components/SideMenu/SideMenu';
 import NotebookOverview from '../NotebookPage/OverviewPage/NotebookOverview';
 import GatewayOverview from '../GatewayPage/OverviewPage/GatewayOverview';
 import KernelOverview from '../KernelPage/OverviewPage/KernelOverview';
