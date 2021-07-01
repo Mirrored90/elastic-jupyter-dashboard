@@ -9,7 +9,7 @@ export default class DataProvider {
 
   private static readonly GET_NOTEBOOK_END_POINT: string = '/notebooks';
 
-  private static readonly CREATE_NOTEBOOK_END_POINT: string = '/notebooks/create';
+  private static readonly CREATE_NOTEBOOK_END_POINT: string = '/notebooks';
 
   public constructor() {
     this.absoluteUrl = 'http://0.0.0.0:9090';
@@ -52,7 +52,7 @@ export default class DataProvider {
     const requestOptions: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ notebook: settings }),
+      body: JSON.stringify({ ...settings }),
     };
 
     return fetch(`${this.absoluteUrl}${DataProvider.CREATE_NOTEBOOK_END_POINT}`, requestOptions)

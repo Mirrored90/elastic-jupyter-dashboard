@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import { Form, Drawer, Button, Row, Col, Input, Space, Switch } from 'antd';
+import { Form, Drawer, Button, Row, Col, Input, Space, Switch, Spin, message } from 'antd';
 import { FormInstance } from 'antd/lib/form';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { cloneDeep } from 'lodash';
@@ -10,6 +10,7 @@ import ActionType from '../../redux/actions/ActionTypes';
 import DataProvider from '../../dataProvider/DataProvider';
 import { INotebookInfo } from '../../models/notebookModels/INotebookInfo';
 import { NotebookIcon, DockerIcon, GatewayBackIcon } from '../Icons/Icons';
+import Utility from '../../utility/Utility';
 import styles from './NotebookCreationDrawer.module.scss';
 
 export interface INotebookCreationDrawerProps {
@@ -30,6 +31,7 @@ export interface INotebookCreationDrawerState {
   containerPorts: string;
   containerVolumes: string;
   containerEnvironments: string;
+  loading: boolean;
 }
 
 class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProps, INotebookCreationDrawerState> {
@@ -53,14 +55,55 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
       containerPorts: '',
       containerVolumes: '',
       containerEnvironments: '',
+      loading: false,
     };
   }
+
+  private refreshList = async (): Promise<void> => {
+    try {
+      await Utility.delay(500);
+
+      const responses: INotebookInfo[] = await this.dataProvider.getNotebooks();
+      this.props.dispatch?.({
+        type: ActionType.UPDATE_NOTEBOOK_TABLE,
+        payload: { notebooks: responses },
+      });
+    } catch (error) {
+      console.log('---error:', error);
+    }
+  };
+
+  private createNotebook = async (newNotebook: INotebookInfo): Promise<void> => {
+    let isError = false;
+
+    try {
+      this.setState({
+        loading: true,
+      });
+      await this.dataProvider.createNotebook(newNotebook);
+    } catch {
+      isError = true;
+      this.setState({
+        loading: false,
+      });
+      message.error('Fail to create');
+    }
+
+    if (!isError) {
+      this.setState({
+        loading: false,
+      });
+      message.success('Notebook created');
+      this.onCloseDrawer();
+      await this.refreshList();
+    }
+  };
 
   private onSubmit = (): void => {
     const newNotebook: INotebookInfo = {
       name: this.state.notebookName,
       namespace: this.state.notebookNamespace,
-      ...(this.state.customizeContainer && {
+      ...(this.state.specifyGateway && {
         gatewayName: this.state.gatewayName,
         gatewayNamespace: this.state.gatewayNamespace,
       }),
@@ -78,14 +121,14 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
       }),
     };
     // TODO: call POST api to create notebook here
-    this.dataProvider.createNotebook(newNotebook);
-    this.onCloseDrawer();
+    this.createNotebook(newNotebook);
   };
 
   private resetState = (): void => {
     this.setState({
       notebookName: '',
       notebookNamespace: '',
+      specifyGateway: false,
       gatewayName: '',
       gatewayNamespace: '',
       customizeContainer: false,
@@ -284,12 +327,7 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
           </Form.Item>
           {fields.map(({ key, name, fieldKey, ...restField }) => (
             <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-              <Form.Item
-                {...restField}
-                name={name}
-                fieldKey={fieldKey}
-                rules={[{ required: true, message: 'Missing first name' }]}
-              >
+              <Form.Item {...restField} name={name} fieldKey={fieldKey}>
                 <Input onChange={(event) => this.addCommands(name, event)} />
               </Form.Item>
               <MinusCircleOutlined onClick={() => this.removeCommands(remove, name)} />
@@ -305,20 +343,16 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
       <Form.Item name="containerName" label="Name" rules={[{ required: true, message: 'Please enter namespace' }]}>
         <Input onChange={this.onContainerNameChange} />
       </Form.Item>
-      <Form.Item name="image" label="Image" rules={[{ required: true, message: 'Please enter namespace' }]}>
+      <Form.Item name="image" label="Image" rules={[{ required: true, message: 'Please enter image' }]}>
         <Input onChange={this.onContainerImageChange} />
       </Form.Item>
-      <Form.Item name="ports" label="Ports" rules={[{ required: true, message: 'Please enter namespace' }]}>
+      <Form.Item name="ports" label="Ports" rules={[{ required: false }]}>
         <Input onChange={this.onContainerPortsChange} />
       </Form.Item>
-      <Form.Item
-        name="environments"
-        label="Environments"
-        rules={[{ required: true, message: 'Please enter namespace' }]}
-      >
+      <Form.Item name="environments" label="Environments" rules={[{ required: false }]}>
         <Input onChange={this.onContainerEnvironmentsChange} />
       </Form.Item>
-      <Form.Item name="volumes" label="Volumes" rules={[{ required: true, message: 'Please enter namespace' }]}>
+      <Form.Item name="volumes" label="Volumes" rules={[{ required: false }]}>
         <Input onChange={this.onContainerVolumesChange} />
       </Form.Item>
       {this.getListForCommands()}
@@ -347,16 +381,12 @@ class NotebookCreationDrawer extends React.Component<INotebookCreationDrawerProp
   public render(): JSX.Element {
     return (
       <>
-        <Drawer
-          width={720}
-          onClose={this.onCloseDrawer}
-          visible={this.props.isOpen}
-          // bodyStyle={{ paddingLeft: 16 }}
-          footer={this.getFooterContent()}
-        >
-          <Form id="creationForm" ref={this.formRef} onFinish={this.onSubmit}>
-            {this.getDrawerContent()}
-          </Form>
+        <Drawer width={720} onClose={this.onCloseDrawer} visible={this.props.isOpen} footer={this.getFooterContent()}>
+          <Spin spinning={this.state.loading}>
+            <Form id="creationForm" ref={this.formRef} onFinish={this.onSubmit}>
+              {this.getDrawerContent()}
+            </Form>
+          </Spin>
         </Drawer>
       </>
     );
